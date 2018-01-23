@@ -1,3 +1,8 @@
+/* Speaker GND and pin 9 
+ * tone(pin, freq, duration)
+ * 
+ * 
+ */
 // include the library code:
 #include <LiquidCrystal.h>
 
@@ -15,7 +20,16 @@ void setup() {
 
 // main
 void loop() {
-  checkerPattern();
+  //checkerPattern();
+  tone(9, 75, 500);
+  delay(500);
+  noTone(9);
+  tone(9, 1000, 500);
+  delay(500);
+  noTone(9);
+  
+  
+  
 }
 
 
@@ -23,7 +37,8 @@ void checkerPattern() {
   // set the cursor to column 0, line 1
   int row = 0; // 0 or 1
   int col = 0; // 0 - 15
-  int timer = 1000;
+  int timer = 500; // time between each block change
+  int divider = timer / 32;
   for(int i = 0; i < 2; i++) {
 
     // fills screen following checkered pattern
@@ -37,7 +52,7 @@ void checkerPattern() {
       }
       lcd.write(BLOCK);
       delay(timer); 
-      timer = timer - 30;
+      timer = timer - divider;
     }
 
     // fills in checkered pattern
