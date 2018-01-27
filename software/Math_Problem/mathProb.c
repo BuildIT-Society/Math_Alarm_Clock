@@ -3,7 +3,7 @@
 #include <time.h>
 #include <math.h>
 
-#include "clock.h"
+#include "mathProb.h"
 
 
 // makes simple algebra problem
@@ -88,6 +88,23 @@ bool algebra2(int lvl) {
     }
 
 }
+
+// randomly generates 1 hex byte
+void genHex(int byte[]) {
+    int tmp;
+    // randomly seeds random variable with time
+    srand(time(NULL));
+    for(int i = 0; i < 2; i++) {
+        tmp = rand() % 16;
+        if (tmp > 9) {
+            byte[i] = tmp + 87; // 87 + at least 10 = 97: i.e. 'a' in ascii
+        }
+        else {
+            byte[i] = tmp + 48; // starts at '0' in ascii
+        }
+    }
+}
+
 
 
 

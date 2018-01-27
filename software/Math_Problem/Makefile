@@ -9,7 +9,7 @@ proj: $(OBJS)
 main.o: main.c
 	$(GCC) -c main.c -o main.o
 
-mathProb.o: mathProb.h mathProbc
+mathProb.o: mathProb.h mathProb.c
 	$(GCC) -c mathProb.c -o mathProb.o
 
 
