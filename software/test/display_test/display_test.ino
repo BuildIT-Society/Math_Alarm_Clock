@@ -12,9 +12,9 @@ void setup() {
 
 void loop() {
   // Turn off the display:
-  lcd.noDisplay();
+  lcd.print("TESTING");
   delay(500);
   // Turn on the display:
-  lcd.display();
+  lcd.clear();
   delay(1000);
 }
