@@ -20,14 +20,14 @@ void setup() {
 
 // main
 void loop() {
-  //checkerPattern();
+  checkerPattern();/*
   tone(9, 75, 500);
   delay(500);
   noTone(9);
   tone(9, 1000, 500);
   delay(500);
   noTone(9);
-  
+  */
   
   
 }
