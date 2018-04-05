@@ -7,7 +7,6 @@ const int d4 = 5;
 const int d5 = 4; 
 const int d6 = 3;
 const int d7 = 2;
-
 // setup function 
 LiquidCrystal lcd(rs, en, d4, d5, d6, d7);
 
@@ -23,17 +22,17 @@ const int enterPin = 10; // pin 10
 bool currButton [4] = {0,0,0,0};
 bool oldButton [4] = {1,1,1,1}; 
 
-// Enter value
-bool enter = 0;
+bool enter = 0; // Enter value
+int sum = 0; // input sum
+int x = 0; // loop variable
 
-// input sum
-int sum = 0;
-
-// loop variable
-int x = 0; 
+int hours = 12; // start hours
+int minutes = 59; //start min
+int seconds = 55; //start seconds
+int alarmHour = 1; // hour time for alarm
+int alarmMin = 0; // minute time for alarm
 
 void setup() {
-
   // set up the LCD's number of columns and rows:
   lcd.begin(16, 2);
   // Print a message to the LCD.
@@ -49,7 +48,20 @@ void setup() {
   Serial.begin(9600);
 }
 
+
+
+
+/////////////////// MAIN LOOP ////////////////////////
 void loop() {
+
+   // printing clock logic
+   while (true) {
+     printClock();
+     printAlarm();
+     printAlarmStatus();
+     
+   }
+   
   while(digitalRead(enterPin) != HIGH) {
     readPins();
     
@@ -72,6 +84,9 @@ void loop() {
 } // END MAIN
 
 
+
+
+/////////////////// HELPER FUNCTIONS //////////////////////
 // reads the binary pushbutton pins
 void readPins() { 
   // read each button, if pressed -> HIGH
@@ -115,6 +130,67 @@ void printSum() {
   else {
     lcd.setCursor(14,0);
     lcd.print(sum);
+  }
+}
+
+/////////////// CLOCK FUNCTIONS ////////////////////
+// clock printing logic, includes proper 0's
+void printClock() {
+  lcd.setCursor(0, 0);
+  (hours < 10) ? lcd.print("0") : NULL;
+  lcd.print(hours);
+  lcd.print(":");
+  (minutes < 10) ? lcd.print("0") : NULL;
+  lcd.print(minutes);
+  lcd.print(":");
+  (seconds < 10) ? lcd.print("0") : NULL;
+  lcd.print(seconds);
+  lcd.display();
+  stepUp();
+  delay(1000);
+}
+
+// clock logic
+ void stepUp() {
+   if (seconds < 59) {
+     seconds ++;
+   } 
+   else if (minutes < 59) {
+      seconds = 0;
+      minutes ++;
+   } 
+   else if (hours < 12) {
+      seconds = 0;
+      minutes = 0; 
+      hours ++;       
+    }
+    else {
+      seconds = 0;
+      minutes = 0; 
+      hours = 1; 
+   }
+ }
+
+// prints alarm to screen
+ void printAlarm() {
+  lcd.setCursor(0, 1);
+  (alarmHour < 10) ? lcd.print("0") : NULL;
+  lcd.print(alarmHour);
+  lcd.print(":");
+  (alarmMin < 10) ? lcd.print("0") : NULL;
+  lcd.print(alarmMin); 
+ }
+
+
+/////////////// DEBUGGING FUNCTIONS ////////////////
+void printAlarmStatus() {
+  lcd.setCursor(6, 1);
+  if(alarmHour != hours && alarmMin != minutes) {
+     lcd.print("off");
+  }
+  else {
+    lcd.print("on");
+    lcd.print(" ");
   }
 }
 
