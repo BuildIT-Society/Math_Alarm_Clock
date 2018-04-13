@@ -2,9 +2,9 @@
 An alarm clock that doesn't stop beeping until the user solves a math problem.
 
 <br>
-## Helpful Resources ##
+## Helpful Resources
 <br>
-### LCD Setup: ### <br>
+### LCD Setup:  <br>
 https://www.arduino.cc/en/Reference/LiquidCrystal
 <br>
 ### Real Time Clock module help: ### <br>
