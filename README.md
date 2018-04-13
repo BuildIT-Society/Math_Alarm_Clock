@@ -8,7 +8,7 @@ LCD Setup:  <br>
 https://www.arduino.cc/en/Reference/LiquidCrystal
 <br>
 Real Time Clock module help: <br>
-https://playground.arduino.cc/Main/DS1302
+https://playground.arduino.cc/Main/DS1302 <br>
 https://tronixlabs.com.au/news/tutorial-using-ds1307-and-ds3231-realtime-clock-modules-with-arduino/
 <br>
 Speaker Library to make non-blocking sounds: <br>
