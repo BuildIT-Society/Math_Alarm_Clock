@@ -1,4 +1,13 @@
 #include <LiquidCrystal.h>
+#include <DS3231.h>
+#include <Tone.h>
+
+// Init the DS3231 using the hardware interface
+DS3231  rtc(SDA, SCL);
+Time clk; // Init a Time-data structure
+
+// Speaker setup
+Tone buzzer;
 
 // LCD setup
 const int rs = 12; 
@@ -27,21 +36,24 @@ int level = 1; // user math level
 int answer; // answer to math problem
 int response; // user input response
 int x = 0; // loop variable
+int y = 0; // loop variable
 
 int hours = 12; // start hours
 int minutes = 59; //start min
 int seconds = 58; //start seconds
-int alarmHour = 1; // hour time for alarm
+int ampm = 0; // 0 = am, 1 = pm
+int alarmHour = 8; // hour time for alarm
 int alarmMin = 0; // minute time for alarm
 bool alarmFlag = false; // flag to set alarm
 
 void setup() {
   // set up the LCD's number of columns and rows:
   lcd.begin(16, 2);
-  // Print a message to the LCD.
-  //lcd.setCursor(9,0);
-  //lcd.print("Sum:"); 
-
+  // set up real time clock module
+  rtc.begin();
+  // set up the buzzer for the alarm
+  buzzer.begin(13);
+  
   // set all button pins for INPUT mode
   for(x = 0; x < 4; x++) {
     pinMode(buttonPin[x], INPUT);
@@ -58,8 +70,10 @@ void loop() {
   // printing clock logic
   while (alarmFlag == false) {
     printClock();
+    
     if(alarmHour == hours && alarmMin == minutes) {
-      printAlarmStatus(); 
+      buzzer.play(1200,300);
+      //printAlarmStatus(); 
       alarmFlag = true; 
     }
     printAlarm();
@@ -94,26 +108,162 @@ void loop() {
 } // END MAIN
 
 
-/////////////////// HELPER FUNCTIONS //////////////////////
+
+//////////////// MATH FUNCTIONS ///////////////////
+// Q: x to binary?
+int question1() {
+  // creates random number from 0 to 15
+  int randomNum = random(0,16);
+  lcd.setCursor(0,0);
+  lcd.print("Q: ");
+  lcd.print(randomNum);
+  lcd.print(" to binary?");
+  return randomNum;
+}
+
 // reads input pins
 // converts the users binary value to decimal
 int getResponse() {
   while(digitalRead(enterPin) != HIGH) {
     readPins();
-   
+    
+    Serial.println(y); // DO NOT DELETE, buzzer library needs this to work
+    y = buzzerPlay(y);
+    
     // sum of all input
     sum = 0;
     sum = displayBinary();
-
-    //printSum();
-  
-    // debugging
-    Serial.print(sum);
-    Serial.print("\n");
+    //printSum();   
+    y++;
   }
   return sum;
 }
 
+// checks if the user's response is same as correct answer
+bool checkResponse(int resp, int ans) {
+  // debugging
+  /*
+  Serial.print("Ans ");
+  Serial.print(ans);
+  Serial.print("Resp ");
+  Serial.println(resp);
+  */
+    
+  if(resp == ans) {
+    lcd.print("Correct");
+    delay(2000);
+    return false; // turns off alarm
+  }
+  else {
+    lcd.print("Wrong!");
+    lcd.setCursor(0,1);
+    lcd.print("Answer is: ");
+    lcd.print(ans);
+    delay(2000);
+    return true; // keeps alarm on
+  }
+}
+
+// prints users math level to the screen
+void printLevel(int lvl) {
+  lcd.setCursor(8,1);
+  lcd.print("level: ");
+  lcd.print(lvl);
+}
+
+
+/////////////// CLOCK FUNCTIONS ////////////////////
+// clock printing logic, includes proper 0's
+void printClock() {
+  lcd.setCursor(0, 0);
+  
+  // gets real time from rtc module then prints to lcd screen
+  clk = rtc.getTime();
+  
+  if(clk.hour > 12) {
+    hours = clk.hour - 12;
+    ampm = 1;
+  }
+  else {
+    hours = clk.hour;
+    ampm = 0;
+  }
+  minutes = clk.min;
+  seconds = clk.sec;
+
+  // prints time to lcd screen
+  (hours < 10) ? lcd.print("0") : NULL;
+  lcd.print(hours);
+  lcd.print(":");
+  (minutes < 10) ? lcd.print("0") : NULL;
+  lcd.print(minutes);
+  lcd.print(":");
+  (seconds < 10) ? lcd.print("0") : NULL;
+  lcd.print(seconds);
+  lcd.display();
+   
+}
+
+// prints out a simulated clock to lcd
+void printClockTest() {
+  // used for debugging time issues
+  lcd.setCursor(0, 0);
+  (hours < 10) ? lcd.print("0") : NULL;
+  lcd.print(hours);
+  lcd.print(":");
+  (minutes < 10) ? lcd.print("0") : NULL;
+  lcd.print(minutes);
+  lcd.print(":");
+  (seconds < 10) ? lcd.print("0") : NULL;
+  lcd.print(seconds);
+  lcd.display();
+  stepUp();
+  delay(1000);
+}
+
+// creates a time interval between buzz sounds
+int buzzerPlay(int count) {
+  if((count % 300) == 0) {
+    buzzer.play(1200,500); // (freq, duration (ms))
+    count = 1;
+  }
+  return count;
+}
+
+
+// clock incrementing logic
+ void stepUp() {
+   if (seconds < 59) {
+     seconds ++;
+   } 
+   else if (minutes < 59) {
+      seconds = 0;
+      minutes ++;
+   } 
+   else if (hours < 12) {
+      seconds = 0;
+      minutes = 0; 
+      hours ++;       
+    }
+    else {
+      seconds = 0;
+      minutes = 0; 
+      hours = 1; 
+   }
+ }
+
+// prints alarm to screen
+ void printAlarm() {
+  lcd.setCursor(0, 1);
+  (alarmHour < 10) ? lcd.print("0") : NULL;
+  lcd.print(alarmHour);
+  lcd.print(":");
+  (alarmMin < 10) ? lcd.print("0") : NULL;
+  lcd.print(alarmMin); 
+ }
+
+
+/////////////////// HELPER FUNCTIONS //////////////////////
 // reads the binary pushbutton pins
 void readPins() { 
   // read each button, if pressed -> HIGH
@@ -147,91 +297,6 @@ int displayBinary() {
   }
   return sum;
 }
-
-//////////////// MATH FUNCTIONS ///////////////////
-// Q: x to binary?
-int question1() {
-  // creates random number from 0 to 15
-  int randomNum = random(0,16);
-  lcd.setCursor(0,0);
-  lcd.print("Q: ");
-  lcd.print(randomNum);
-  lcd.print(" to binary?");
-  return randomNum;
-}
-
-// checks if the user's response is same as correct answer
-bool checkResponse(int resp, int ans) {
-  if(resp == ans) {
-    lcd.print("Correct");
-    delay(3000);
-    return false; // turns off alarm
-  }
-  else {
-    lcd.print("Wrong!");
-    lcd.setCursor(0,1);
-    lcd.print("Answer is: ");
-    lcd.print(ans);
-    delay(5000);
-    return true; // keeps alarm on
-  }
-}
-
-// prints users math level to the screen
-void printLevel(int lvl) {
-  lcd.setCursor(8,1);
-  lcd.print("level: ");
-  lcd.print(lvl);
-}
-
-
-/////////////// CLOCK FUNCTIONS ////////////////////
-// clock printing logic, includes proper 0's
-void printClock() {
-  lcd.setCursor(0, 0);
-  (hours < 10) ? lcd.print("0") : NULL;
-  lcd.print(hours);
-  lcd.print(":");
-  (minutes < 10) ? lcd.print("0") : NULL;
-  lcd.print(minutes);
-  lcd.print(":");
-  (seconds < 10) ? lcd.print("0") : NULL;
-  lcd.print(seconds);
-  lcd.display();
-  stepUp();
-  delay(1000);
-}
-
-// clock logic
- void stepUp() {
-   if (seconds < 59) {
-     seconds ++;
-   } 
-   else if (minutes < 59) {
-      seconds = 0;
-      minutes ++;
-   } 
-   else if (hours < 12) {
-      seconds = 0;
-      minutes = 0; 
-      hours ++;       
-    }
-    else {
-      seconds = 0;
-      minutes = 0; 
-      hours = 1; 
-   }
- }
-
-// prints alarm to screen
- void printAlarm() {
-  lcd.setCursor(0, 1);
-  (alarmHour < 10) ? lcd.print("0") : NULL;
-  lcd.print(alarmHour);
-  lcd.print(":");
-  (alarmMin < 10) ? lcd.print("0") : NULL;
-  lcd.print(alarmMin); 
- }
 
 
 /////////////// DEBUGGING FUNCTIONS ////////////////
